@@ -1,77 +1,90 @@
-package com.example.androidactivitylifecycle;
-import androidx.appcompat.app.AlertDialog;
+package com.example.weblinkandphonecallapp;
+
 import androidx.appcompat.app.AppCompatActivity;
-import android.content.DialogInterface;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.service.autofill.RegexValidator;
+import android.telephony.PhoneNumberUtils;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.EditText;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity
-{
-    int counter = 0;
+import java.net.URL;
 
+public class MainActivity extends AppCompatActivity {
+    private static final int CALL_PHONE_PERMISSION=100;
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setTitle("Web Link and Phone Call Activity");
     }
 
     @Override
-    protected void onRestart()
-    {
+    protected void onStart() {
+        super.onStart();
+        int callPhonePerm=ContextCompat.checkSelfPermission(this, android.Manifest.permission.CALL_PHONE);
+        if(callPhonePerm!=PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this,new String[]{android.Manifest.permission.CALL_PHONE},CALL_PHONE_PERMISSION);
+        }
+    }
+
+    @Override
+    protected void onRestart() {
         super.onRestart();
-        // Update the counter when MainActivity restarts
-        TextView threadCounterText = findViewById(R.id.thread_counter_txt);
-        threadCounterText.setText("ThreadCounter: " + counter);
     }
 
-    // Start Activity B
-    public void onStartActivityB(View view) {
-        Intent activityBIntent = new Intent(MainActivity.this, ActivityB.class);
-        startActivityForResult(activityBIntent, 1); // Request code 1 for Activity B
-    }
-
-    // Start Activity C
-    public void onStartActivityC(View view) {
-        Intent activityCIntent = new Intent(MainActivity.this, ActivityC.class);
-        startActivityForResult(activityCIntent, 2); // Request code 2 for Activity C
-    }
-
-    // Trigger a dialog
-    public void onTriggerDialog(View view) {
-        new AlertDialog.Builder(this)
-                .setTitle("Dialog")
-                .setMessage("Simple Dialog Box")
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {}
-                })
-                .show();
-    }
-
-    // Close the app
-    public void onCloseApp(View view) {
-        finish();
-        System.exit(0);
-    }
-
-    // Handle results from Activity B and C
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    protected void onResume() {
+        super.onResume();
+    }
 
-        if (resultCode == RESULT_OK) {
-            if (requestCode == 1) {
-                // Increment counter by 5 for Activity B
-                counter += 5;
-            } else if (requestCode == 2) {
-                // Increment counter by 10 for Activity C
-                counter += 10;
-            }
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
 
-            TextView threadCounterText = findViewById(R.id.thread_counter_txt);
-            threadCounterText.setText("ThreadCounter: " + counter);
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+    public void closeApp(View view){
+    finish();
+    }
+    public void openBrowser(View view) {
+        EditText urlEditText = (EditText) findViewById(R.id.editTextUrl);
+        String url = urlEditText.getText().toString();
+        if(!url.isEmpty()){
+            if(!url.startsWith("http")) url="https://"+url;
+            Uri targetPage = Uri.parse(url);
+            Intent intent = new Intent(Intent.ACTION_VIEW, targetPage);
+            startActivity(intent);
+        }
+        else{
+            Toast.makeText(this, "Please Enter a URL", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void openDialer(View view) {
+        EditText urlEditText = (EditText) findViewById(R.id.editTextPhone);
+        String phoneNumber = urlEditText.getText().toString();
+        if(PhoneNumberUtils.isGlobalPhoneNumber(phoneNumber)){
+
+            Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + phoneNumber));
+            startActivity(intent);
+        }
+        else{
+            Toast.makeText(this, "Please Enter a valid phone number", Toast.LENGTH_SHORT).show();
         }
     }
 }
